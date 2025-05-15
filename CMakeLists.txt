@@ -15,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   tf
-  robot_localization
 )
 
 ## System dependencies are found with CMake's conventions
