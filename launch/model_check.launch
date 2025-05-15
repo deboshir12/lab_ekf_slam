@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <param name="robot_description" command="xacro '$(find my_ekf)/urdf/platform.urdf.xacro' " />
+    <arg name="rviz_config_file" default="$(find my_ekf)/config/model.rviz"/> 
+    
+    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" />
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_config_file)" />
+
+    <param name="robot_description" command="xacro '$(find my_ekf)/urdf/platform.urdf.xacro'" />
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+        <param name="publish_frequency" type="double" value="40.0" />
+    </node>
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find my_ekf)/config/test_world.world"/>
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
+    
+    <node name="my_robot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+       args="-urdf -param robot_description -model platform" />
+    
+     <!-- EKF -->
+    <node pkg="my_ekf" type="ekf_slam.py" name="ekf_localization_node" output="screen">
+        <param name="use_sim_time" value="true"/>
+        <param name="initial_pose_x" value="0.0"/>
+        <param name="initial_pose_y" value="0.0"/>
+        <param name="initial_pose_a" value="0.0"/>
+    </node>
+
+    <node name="landmark_detector" pkg="my_ekf" type="detection.py" output="screen" />
+
+    <!-- controller -->
+    <node pkg="my_ekf" type="motion_controller.py" name="motion_controller_node" output="screen"/>
+    <node name="simple_odometry_publisher" pkg="my_ekf" type="odometry.py" />
+
+    <!-- target publisher -->
+    <!-- <node pkg="my_ekf" type="target_publisher.py" name="target_publisher_node" output="screen"/> -->
+</launch>
